@@ -100,6 +100,8 @@ private:
 
 // Хэш-таблица: вектор списков с узлами
 // (для решения проблемы коллизии: метод цепочек)	std::vector<std::list<Node<TKey, TData>>> tableStore;
+
+// Хранение произведённых действий: вектор идентификаторов
 	std::stack<int> cancelArr;
 	std::stack<Node<TKey, TData>> insertHistory;
 	std::stack<Node<TKey, TData>> removeHistory;

@@ -8,34 +8,57 @@
 #include <string>
 #include "Contact.h"
 
+// Размер таблицы по умолчанию
 #define DEFAULT_SIZE 128
 
+// Идентификаторы для вектора отмены действий
 enum { INS, DEL };
 
+// Класс узла (контакта)
 template <class TKey, typename TData>
 struct Node {
+
+// Пара ключ-значение
 	TKey key;
 	TData data;
 
+// Конструкторы
 	Node() = default;
 	Node(const TKey& nKey, const TData& nData) : key(nKey), data(nData) { };
+
+// Перегрузка сравнения
 	bool operator ==(const Node<TKey, TData> other)	{return key == other.key;}
 };
 
 
+// Класс хэш-таблицы
 template <typename TKey, typename TData>
 class HashTab {
 public:
+
+// Класс итератора
 	class HIterator {
 	public:
 		HIterator() = default;
 		HIterator(const HashTab<TKey, TData>* table, int iVec, int iList);
+
+// Инкремент
 		HIterator& operator ++();
+
+// Разыменовывание
 		Node<TKey, TData> operator *() { return *curNode; }
+
+// Перегрузка сравнения
 		bool operator==(const HIterator& rhd) const {return curNode == rhd.curNode;}
 		bool operator!=(const HIterator& rhd) const {return curNode != rhd.curNode;}
+
+// Вывод содержимого итератора на консоль
 		void print();
 	private:
+
+// Итератор содержит указатель на таблицу,
+// указатель на узел, индекс в векторе и
+// индекс в списке
 		const Node<TKey, TData> *curNode;
 		const HashTab<TKey, TData> *curTable;
 		int curVectorI = 0,

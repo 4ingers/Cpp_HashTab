@@ -124,7 +124,9 @@ template <typename TKey, typename TData>
 int HashTab<TKey, TData>::hash(const std::string& key) const {
 	int result = 0;
 	for (int i = 0; i < key.length(); ++i)
-		result += key[i] * key.length() % tableStore.size();
+		//result += key[i] * key.length() % tableStore.size();
+result += key[i];
+std::cout << result % tableStore.size();
 	return result % tableStore.size();
 }
 

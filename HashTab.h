@@ -131,6 +131,8 @@ int HashTab<TKey, TData>::hash(const std::string& key) const {
 // Ищется узел с заданным ключом
 // Если такового нет, он добавляется в позицию вектора
 // в конец списка
+// Если есть, данные по ключу перезаписываются
+// (модификация таблицы)
 template <typename TKey, typename TData>
 void HashTab<TKey, TData>::insert(const TKey& key, const TData& data) {
 	int hKey = hash(key);
@@ -144,7 +146,7 @@ void HashTab<TKey, TData>::insert(const TKey& key, const TData& data) {
 	insertHistory.push(newNode);
 }
 
-
+// Итератор на первый элемент таблицы
 template <typename TKey, typename TData>
 typename HashTab<TKey, TData>::HIterator HashTab<TKey, TData>::begin() const {
 	int i;
@@ -152,7 +154,7 @@ typename HashTab<TKey, TData>::HIterator HashTab<TKey, TData>::begin() const {
 	return HIterator(this, i, 0);
 }
 
-
+// Конструктор итератора
 template <typename TKey, typename TData>
 HashTab<TKey, TData>::HIterator::HIterator(
 	const HashTab<TKey, TData>* table, int iHash, int iList
@@ -169,7 +171,10 @@ HashTab<TKey, TData>::HIterator::HIterator(
 		curNode = &(*next(curTable->tableStore[iHash].begin(), iList));
 }
 
-
+// Инкремент итератора
+// Если итератор на конце списка, следующий будет
+// находиться на следующем элементе вектора,
+// на первом элементе списка
 template <typename TKey, typename TData>
 typename HashTab<TKey, TData>::HIterator& HashTab<TKey, TData>::HIterator::operator++ () {
 	if (curTable->tableStore[curVectorI].size() - 1 == curListI) {

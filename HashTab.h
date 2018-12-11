@@ -103,12 +103,17 @@ private:
 
 // Хранение произведённых действий: вектор идентификаторов
 	std::stack<int> cancelArr;
+
+// Стэк вставок
 	std::stack<Node<TKey, TData>> insertHistory;
+
+// Стэк удалений
 	std::stack<Node<TKey, TData>> removeHistory;
 };
 
 
-
+// Хэширование
+// Кажда
 template <typename TKey, typename TData>
 int HashTab<TKey, TData>::hash(const std::string& key) const {
 	int result = 0;

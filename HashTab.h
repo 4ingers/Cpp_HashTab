@@ -118,7 +118,7 @@ private:
 // Хэши символов суммируются и берётся остаток
 // от деления на размер таблицы
 // Так гарантируется отсутствие проблемы с выходом
-// За пределы размера таблицы
+// за пределы размера таблицы
 template <typename TKey, typename TData>
 int HashTab<TKey, TData>::hash(const std::string& key) const {
 	int result = 0;
@@ -127,7 +127,10 @@ int HashTab<TKey, TData>::hash(const std::string& key) const {
 	return result % tableStore.size();
 }
 
-
+// Вставка узла
+// Ищется узел с заданным ключом
+// Если такового нет, он добавляется в позицию вектора
+// в конец списка
 template <typename TKey, typename TData>
 void HashTab<TKey, TData>::insert(const TKey& key, const TData& data) {
 	int hKey = hash(key);

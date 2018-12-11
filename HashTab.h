@@ -68,24 +68,38 @@ public:
 	HashTab() { tableStore.resize(DEFAULT_SIZE); }
 	HashTab(int size) { tableStore.resize(size); }
 
+// Хэш-функция
 	int hash(const std::string&) const;
+
+// Вставка узла
 	void insert(const TKey&, const TData&);
 
+// Итераторы: начало, конец, поиск,
+// поиск по значению
 	HIterator begin() const;
 	HIterator end() const {	return HIterator(this, tableStore.size(), 0); }
 	HIterator find(const TKey&) const;
 	HIterator find_value(const std::string&);
+
+// Удаление элемента
 	void erase(const TKey&);
+
+// Отмена действий
 	void undo(int m);
+
+// Печать содержимого таблицы
 	void print() {
 		for (auto it : (*this) )	std::cout << it.data << std::endl;
 	}
 
+// Перегрузка вывода в поток (файл)
 	template <typename UKey, class UData>
 	friend std::ofstream& operator <<(std::ofstream&, const HashTab<UKey,UData>&);
 
 private:
-	std::vector<std::list<Node<TKey, TData>>> tableStore;
+
+// Хэш-таблица: вектор списков с узлами
+// (для решения проблемы коллизии: метод цепочек)	std::vector<std::list<Node<TKey, TData>>> tableStore;
 	std::stack<int> cancelArr;
 	std::stack<Node<TKey, TData>> insertHistory;
 	std::stack<Node<TKey, TData>> removeHistory;

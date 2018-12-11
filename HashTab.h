@@ -199,7 +199,8 @@ typename HashTab<TKey, TData>::HIterator& HashTab<TKey, TData>::HIterator::opera
 	return *this;
 }
 
-
+// Поиск элемента: возвращается итератор
+// Если не найден, то на конец таблицы
 template <typename TKey, typename TData>
 typename HashTab<TKey, TData>::HIterator HashTab<TKey, TData>::find(const TKey& key) const {
 	int hKey = hash(key),
@@ -212,6 +213,9 @@ typename HashTab<TKey, TData>::HIterator HashTab<TKey, TData>::find(const TKey& 
 	return HIterator(this, tableStore.size(), 0);
 }
 
+
+// Поиск по значению
+// Поочерёдный перебор элементов
 template <typename TKey, typename TData>
 typename HashTab<TKey, TData>::HIterator
 	HashTab<TKey, TData>::find_value(const std::string& subStr) {
@@ -226,12 +230,14 @@ typename HashTab<TKey, TData>::HIterator
 	return HIterator(this, tableStore.size(), 0);
 }
 
+// Печать содержимого итератора
 template <typename TKey, typename TData>
 void HashTab<TKey, TData>::HIterator::print() {
 	if (!(nullptr == curNode))
 		cout << curNode->data;
 }
 
+// Удаление элемента
 template <typename TKey, typename TData>
 void HashTab<TKey, TData>::erase(const TKey& key)
 {
@@ -246,6 +252,9 @@ void HashTab<TKey, TData>::erase(const TKey& key)
 	}
 }
 
+// Отмена действий
+// Достаются элементы стэка и производятся
+// обратные действия
 template <typename TKey, typename TData>
 void HashTab<TKey, TData>::undo(int m) {
 	int arrSize = cancelArr.size();
@@ -272,7 +281,7 @@ void HashTab<TKey, TData>::undo(int m) {
 	while (!insertHistory.empty()) insertHistory.pop();
 }
 
-
+// Вывод в файл
 template <typename TKey, class TData>
 std::ofstream& operator<< (std::ofstream& fout, const HashTab<TKey, TData>& right) {
 	for (auto it : right.tableStore)

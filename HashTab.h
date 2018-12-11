@@ -27,7 +27,7 @@ struct Node {
 	Node(const TKey& nKey, const TData& nData) : key(nKey), data(nData) { };
 
 // Перегрузка сравнения
-	bool operator ==(const Node<TKey, TData> other)	{return key == other.key;}
+	bool operator ==(const Node<TKey, TData> other) const	{return key == other.key;}
 };
 
 
@@ -123,10 +123,10 @@ private:
 template <typename TKey, typename TData>
 int HashTab<TKey, TData>::hash(const std::string& key) const {
 	int result = 0;
+	/* Демонстрация коллизии (числовая строка, для простоты) */
 	for (int i = 0; i < key.length(); ++i)
+		result += key[i] - '0';
 		//result += key[i] * key.length() % tableStore.size();
-result += key[i];
-std::cout << result % tableStore.size();
 	return result % tableStore.size();
 }
 
@@ -141,12 +141,18 @@ void HashTab<TKey, TData>::insert(const TKey& key, const TData& data) {
 	int hKey = hash(key);
 	Node<TKey, TData> newNode(key, data);
 	auto it = std::find(tableStore[hKey].begin(), tableStore[hKey].end(), newNode);
-	if (tableStore[hKey].end() == it)
+	if (tableStore[hKey].end() == it) {
 		tableStore[hKey].push_back(newNode);
-	else
+		std::cout << std::endl << "New contact";
+	}
+	else {
 		(*it).data = data;
+		std::cout << std::endl << "Edit contact";
+	}
 	cancelArr.push(INS);
 	insertHistory.push(newNode);
+	// Печать ключа и соответствующего ему результата хэш-обработки
+	std::cout << std::endl << "* hash(" << key << ") == " << hKey << " *" << std::endl;
 }
 
 // Итератор на первый элемент таблицы

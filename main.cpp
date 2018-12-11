@@ -11,25 +11,35 @@ void conclude(HashTab<string, Contact>&);
 
 int main() {
 	HashTab<string, Contact> Notebook;
+	cout << endl << "Notebook loading.." << endl;
 	init(Notebook);
-	Contact person1("Ivan", "Krusenshtern", "Fedorovich", "89778899249", "seaways@mail.post", "Admiral");
-	Contact person2("Anton", "Chekhov", "Pavlovich", "89778899247", "berrygarden@mail.post", "Writer");
-	string phone1("89778899249");
-	string phone2("89778899247");
+
+	string phone1("89778899019");
+	string phone2("89778899028");
+	Contact person1("Krusenshtern", "Ivan", "Fedorovich", phone1, "seaways@mail.post", "Admiral");
+	Contact person2("Chekhov", "Anton", "Pavlovich", phone2, "berrygarden@mail.post", "Writer");
 	Notebook.insert(phone1, person1);
 	Notebook.insert(phone2, person2);
+	cout << endl << "Print table :" << endl;
 	Notebook.print();
+	cout << endl << "=============";
 	string name("Chek");
-	//Notebook.find_value(name).print();
 	Notebook.erase(phone1);
+	cout << endl << "Erased at hash(" << phone1 << ')' << endl;
+	cout << endl << "Trying to find at hash(" << phone1 << ')' << endl;
 	Notebook.find(phone1).print();
+	int i = 1;
+	cout << endl << "Undo : " << i << endl;
 	Notebook.undo(1);
+	cout << endl << "Print table :" << endl;
+  Notebook.print();
+
 	conclude(Notebook);
 	return 0;
 }
 
 void init(HashTab<string, Contact>& book) {
-	ifstream fin("workbook.txt");
+	ifstream fin("workbook.in");
 	std::vector<std::string> sList;
 	std::string s;
 	while (std::getline(fin, s) && !s.empty()) {
@@ -49,18 +59,8 @@ void init(HashTab<string, Contact>& book) {
 	fin.close();
 }
 
-// void execute() {
-// 	do {
-// 		system("cls");
-// 		cout << "1 - add contact" << endl;
-// 		cout << "2 - delete contact" << endl;
-// 		cout << "3 - change contact" << endl;
-// 		cout << "4 - find contact" << endl;
-// 	} while
-// }
-
 void conclude(HashTab<string, Contact>& book) {
-	ofstream fout("workbook.txt");
+	ofstream fout("workbook.in");
 	fout << book;
 	fout.close();
 }

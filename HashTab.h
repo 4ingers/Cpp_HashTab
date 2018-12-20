@@ -11,8 +11,8 @@
 // Размер таблицы по умолчанию
 #define DEFAULT_SIZE 128
 
-// Идентификаторы для вектора отмены действий
-enum { INS, DEL };
+// Идентификаторы для стека отмены действий
+enum {INS, DEL};
 
 // Класс узла (контакта)
 template <class TKey, typename TData>
@@ -24,10 +24,12 @@ struct Node {
 
 // Конструкторы
 	Node() = default;
-	Node(const TKey& nKey, const TData& nData) : key(nKey), data(nData) { };
+	Node(const TKey& nKey, const TData& nData) : key(nKey), data(nData) {};
 
 // Перегрузка сравнения
-	bool operator ==(const Node<TKey, TData> other) const	{return key == other.key;}
+	bool operator ==(const Node<TKey, TData> other) const {
+		return key == other.key;
+	}
 };
 
 
@@ -46,11 +48,17 @@ public:
 		HIterator& operator ++();
 
 // Разыменовывание
-		Node<TKey, TData> operator *() { return *curNode; }
+		Node<TKey, TData> operator *() { 
+			return *curNode; 
+		}
 
 // Перегрузка сравнения
-		bool operator==(const HIterator& rhd) const {return curNode == rhd.curNode;}
-		bool operator!=(const HIterator& rhd) const {return curNode != rhd.curNode;}
+		bool operator ==(const HIterator& rhd) const {
+			return curNode == rhd.curNode;
+		}
+		bool operator !=(const HIterator& rhd) const {
+			return curNode != rhd.curNode;
+		}
 
 // Вывод содержимого итератора на консоль
 		void print();
@@ -59,8 +67,8 @@ public:
 // Итератор содержит указатель на таблицу,
 // указатель на узел, индекс в векторе и
 // индекс в списке
-		const Node<TKey, TData> *curNode;
-		const HashTab<TKey, TData> *curTable;
+		const Node<TKey, TData>* curNode;
+		const HashTab<TKey, TData>* curTable;
 		int curVectorI = 0,
 				curListI   = 0;
 	};
@@ -72,29 +80,28 @@ public:
 	int hash(const std::string&) const;
 
 // Вставка узла
-	void insert(const TKey&, const TData&);
+	int insert(const TKey&, const TData&);
 
 // Итераторы: начало, конец, поиск,
 // поиск по значению
 	HIterator begin() const;
-	HIterator end() const {	return HIterator(this, tableStore.size(), 0); }
+	HIterator end() const;
 	HIterator find(const TKey&) const;
 	HIterator find_value(const std::string&);
 
 // Удаление элемента
-	void erase(const TKey&);
+	int erase(const TKey&);
 
 // Отмена действий
 	void undo(int m);
 
 // Печать содержимого таблицы
-	void print() {
-		for (auto it : (*this) )	std::cout << it.data << std::endl;
-	}
+	void print() const;
 
 // Перегрузка вывода в поток (файл)
 	template <typename UKey, class UData>
-	friend std::ofstream& operator <<(std::ofstream&, const HashTab<UKey,UData>&);
+	friend std::ofstream&operator<<(std::ofstream&,const HashTab<UKey,UData>&);
+
 
 private:
 
@@ -103,7 +110,7 @@ private:
 	std::vector<std::list<Node<TKey, TData>>> tableStore;
 
 // Хранение произведённых действий: вектор идентификаторов
-	std::stack<int> cancelArr;
+	std::stack<int> actionsStack;
 
 // Стэк вставок
 	std::stack<Node<TKey, TData>> insertHistory;
@@ -123,36 +130,41 @@ private:
 template <typename TKey, typename TData>
 int HashTab<TKey, TData>::hash(const std::string& key) const {
 	int result = 0;
-	/* Демонстрация коллизии (числовая строка, для простоты) */
 	for (int i = 0; i < key.length(); ++i)
 		result += key[i] - '0';
-		//result += key[i] * key.length() % tableStore.size();
-	return result % tableStore.size();
+	return abs(int(result % tableStore.size()));
 }
 
-// Вставка узла
+// Печать содержимого таблицы
+template <typename TKey, typename TData>
+void HashTab<TKey, TData>::print() const {
+	for (auto it : (*this))
+		std::cout << it.data << std::endl;
+}
+
+/// Вставка узла
 // Ищется узел с заданным ключом
 // Если такового нет, он добавляется в позицию вектора
 // в конец списка
 // Если есть, данные по ключу перезаписываются
 // (модификация таблицы)
 template <typename TKey, typename TData>
-void HashTab<TKey, TData>::insert(const TKey& key, const TData& data) {
+int HashTab<TKey, TData>::insert(const TKey& key, const TData& data) {
+	int result;
 	int hKey = hash(key);
 	Node<TKey, TData> newNode(key, data);
 	auto it = std::find(tableStore[hKey].begin(), tableStore[hKey].end(), newNode);
 	if (tableStore[hKey].end() == it) {
 		tableStore[hKey].push_back(newNode);
-		std::cout << std::endl << "New contact";
+		result = 0;
 	}
 	else {
 		(*it).data = data;
-		std::cout << std::endl << "Edit contact";
+		result = 1;
 	}
-	cancelArr.push(INS);
+	actionsStack.push(INS);
 	insertHistory.push(newNode);
-	// Печать ключа и соответствующего ему результата хэш-обработки
-	std::cout << std::endl << "* hash(" << key << ") == " << hKey << " *" << std::endl;
+	return result;
 }
 
 // Итератор на первый элемент таблицы
@@ -163,21 +175,36 @@ typename HashTab<TKey, TData>::HIterator HashTab<TKey, TData>::begin() const {
 	return HIterator(this, i, 0);
 }
 
+// Итератор на последний элемент таблицы
+template <typename TKey, typename TData>
+typename HashTab<TKey, TData>::HIterator HashTab<TKey, TData>::end() const {
+	int iHash = 0,
+			iList = 0;
+	for (int i = tableStore.size() - 1; i >= 0; --i)
+		if (!tableStore[i].empty()) {
+			return HashTab<TKey, TData>::HIterator(this, ++i, iList);
+		}
+	return this->begin();
+}
+
 // Конструктор итератора
 template <typename TKey, typename TData>
 HashTab<TKey, TData>::HIterator::HIterator(
-	const HashTab<TKey, TData>* table, int iHash, int iList
-) {
+			const HashTab<TKey, TData>* table, int iHash, int iList) 
+{
 	this->curTable = table;
-	curNode = nullptr;
+	this->curNode = nullptr;
+
 	if (iHash >= curTable->tableStore.size())
 		return;
 	this->curVectorI = iHash;
+
 	if (iList >= curTable->tableStore[iHash].size())
 		return;
 	this->curListI = iList;
+
 	if (curTable->tableStore[iHash].begin() != curTable->tableStore[iHash].end())
-		curNode = &(*next(curTable->tableStore[iHash].begin(), iList));
+		this->curNode = &(*next(curTable->tableStore[iHash].begin(), iList));
 }
 
 // Инкремент итератора
@@ -185,12 +212,14 @@ HashTab<TKey, TData>::HIterator::HIterator(
 // находиться на следующем элементе вектора,
 // на первом элементе списка
 template <typename TKey, typename TData>
-typename HashTab<TKey, TData>::HIterator& HashTab<TKey, TData>::HIterator::operator++ () {
-	if (curTable->tableStore[curVectorI].size() - 1 == curListI) {
-		int tmpIndex = curVectorI;
+typename HashTab<TKey, TData>::HIterator& 
+				 HashTab<TKey, TData>::HIterator::operator++()
+{
+	if (this->curTable->tableStore[curVectorI].size() - 1 == this->curListI) {
+		int tmpIndex = this->curVectorI;
 		for (int i = curVectorI + 1; i < curTable->tableStore.size(); ++i) {
-			if (!curTable->tableStore[i].empty()) {
-				curVectorI = i;
+			if (!this->curTable->tableStore[i].empty()) {
+				this->curVectorI = i;
 				break;
 			}
 		}
@@ -201,25 +230,28 @@ typename HashTab<TKey, TData>::HIterator& HashTab<TKey, TData>::HIterator::opera
 		curListI = 0;
 	}
 	else
-		++curListI;
+		++(this->curListI);
 	if (curNode == nullptr)
 		return *this;
-	curNode = &(*next(curTable->tableStore[curVectorI].begin(), curListI));
+	this->curNode = &(*next(this->curTable->tableStore[curVectorI].begin(),
+							curListI));
 	return *this;
 }
 
 // Поиск элемента: возвращается итератор
 // Если не найден, то на конец таблицы
 template <typename TKey, typename TData>
-typename HashTab<TKey, TData>::HIterator HashTab<TKey, TData>::find(const TKey& key) const {
+typename HashTab<TKey, TData>::HIterator 
+		 HashTab<TKey, TData>::find(const TKey& key) const 
+{
 	int hKey = hash(key),
-			iList = 0;
-	for (auto jt : tableStore[hKey]) {
-		if (key == jt.key)
+		iList = 0;
+	for (auto it : tableStore[hKey]) {
+		if (key == it.key)
 			return HIterator(this, hKey, iList);
 		++iList;
 	}
-	return HIterator(this, tableStore.size(), 0);
+	return this->tableStore.end();
 }
 
 
@@ -227,7 +259,8 @@ typename HashTab<TKey, TData>::HIterator HashTab<TKey, TData>::find(const TKey& 
 // Поочерёдный перебор элементов
 template <typename TKey, typename TData>
 typename HashTab<TKey, TData>::HIterator
-	HashTab<TKey, TData>::find_value(const std::string& subStr) {
+	HashTab<TKey, TData>::find_value(const std::string& subStr)
+{
 	for (int iHash = 0; iHash < tableStore.size(); ++iHash) {
 		int iList = 0;
 		for (auto jt : tableStore[iHash]) {
@@ -236,29 +269,30 @@ typename HashTab<TKey, TData>::HIterator
 			++iList;
 		}
 	}
-	return HIterator(this, tableStore.size(), 0);
+	return this->end();
 }
 
 // Печать содержимого итератора
 template <typename TKey, typename TData>
 void HashTab<TKey, TData>::HIterator::print() {
-	if (!(nullptr == curNode))
+	if (!(nullptr == this->curNode))
 		cout << curNode->data;
 }
 
 // Удаление элемента
 template <typename TKey, typename TData>
-void HashTab<TKey, TData>::erase(const TKey& key)
+int HashTab<TKey, TData>::erase(const TKey& key)
 {
 	int hKey = hash(key);
 	for (auto jt : tableStore[hKey]) {
 		if (key == jt.key) {
 			removeHistory.push(jt);
-			cancelArr.push(DEL);
+			actionsStack.push(DEL);
 			tableStore[hKey].remove(jt);
-			return;
+			return 0;
 		}
 	}
+	return 1;
 }
 
 // Отмена действий
@@ -266,26 +300,26 @@ void HashTab<TKey, TData>::erase(const TKey& key)
 // обратные действия
 template <typename TKey, typename TData>
 void HashTab<TKey, TData>::undo(int m) {
-	int arrSize = cancelArr.size();
+	int arrSize = actionsStack.size();
 	for (int i = 0; i < m && i < arrSize ; ++i) {
-		if (cancelArr.top() == DEL) {
+		if (actionsStack.top() == DEL) {
 			Node<TKey, TData> newNode(removeHistory.top().key, removeHistory.top().data);
 			tableStore[hash(removeHistory.top().key)].push_back(newNode);
 			removeHistory.pop();
-			cancelArr.pop();
+			actionsStack.pop();
 		}
-		else if (cancelArr.top() == INS) {
+		else if (actionsStack.top() == INS) {
 			int hKey = hash(insertHistory.top().key);
 			for (auto it : tableStore[hKey])
 				if (insertHistory.top().key == it.key) {
 					tableStore[hKey].remove(it);
 					insertHistory.pop();
-					cancelArr.pop();
+					actionsStack.pop();
 					break;
 				}
 		}
 	}
-	while (!cancelArr.empty()) cancelArr.pop();
+	while (!actionsStack.empty()) actionsStack.pop();
 	while (!removeHistory.empty()) removeHistory.pop();
 	while (!insertHistory.empty()) insertHistory.pop();
 }
